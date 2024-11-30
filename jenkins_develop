@@ -1,60 +1,43 @@
+
+
 pipeline {
-    agent any
+    agent any // Specifies the pipeline can run on any available agent
     stages {
         stage('Cleanup') {
             steps {
                 cleanWs()
             }
         }
- 
-        stage('checkout to develop') {
+
+        stage('Clone Repository') {
             steps {
                 checkout scm
             }
         }
 
-         stage('Clone from repository') {
+        stage('Build and Run Docker Image') {
             steps {
-                git url: 'https://github.com/SharadaChhetri/2244_ica2.git', branch: 'develop'
+                sh 'docker stop dev-container || true && docker rm dev-container || true'
+                sh 'docker build -t sharadachhetri15/2244_ica2 .'
+                sh "docker tag sharadachhetri15/2244_ica2 sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
+                sh 'docker run -d --name dev-container -p 8081:80 sharadachhetri15/2244_ica2'
             }
         }
 
-        stage('Build and run docker image') {
-            steps {
-                sh 'docker build -t sharadachhetri15/2244_ica2 .'
-                sh 'docker stop sharada || true && docker rm sharada || true'
-                sh 'docker run --name sharada -d -p 8081:80 sharadachhetri15/2244_ica2'
-            } 
-        }
- 
-        stage('testing') {
+        stage('Test Container') {
             steps {
                 sh 'curl -I 192.168.80.130:8081'
             }
         }
-        stage('tagging'){
-        
-            steps{
-                 sh 'docker tag sharadachhetri15/2244_ica2:latest sharadachhetri15/2244_ica2:latest'
-                 sh "docker tag sharadachhetri15/2244_ica2:latest sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
-            }
-        }
- 
-        stage('Push') {
+
+        stage('Push Image to Docker Hub') {
             steps {
-                echo 'Building..'
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh '''
-                             docker login -u ${USERNAME} -p ${PASSWORD}
-                             docker push sharadachhetri15/2244_ica2:latest
-                        '''
-                        sh " docker push sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh 'docker login -u ${USERNAME} -p ${PASSWORD}'
+                    sh 'docker push sharadachhetri15/2244_ica2'
+                    sh "docker push sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"                    
+                }
             }
         }
- 
-        
- 
-    
     }
 }
