@@ -13,22 +13,28 @@ pipeline {
             }
         }
 
+         stage('Clone from repository') {
+            steps {
+                git url: 'https://github.com/SharadaChhetri/2244_ica2.git', branch: 'develop'
+            }
+        }
+
         stage('Build and run docker image') {
-            echo "Building image and running the container "
-             steps {
+            steps {
                 sh 'docker build -t sharadachhetri15/2244_ica2 .'
-                sh 'docker run -d -p 8081:80 sharadachhetri15/2244_ica2'
+                sh 'docker stop sharada || true && docker rm sharada || true'
+                sh 'docker run --name sharada -d -p 8081:80 sharadachhetri15/2244_ica2'
             } 
         }
  
         stage('testing') {
             steps {
-                sh 'curl -I 54.167.138.23:8081'
+                sh 'curl -I 192.168.80.130:8081'
             }
         }
         stage('tagging'){
         
-             steps{
+            steps{
                  sh 'docker tag sharadachhetri15/2244_ica2:latest sharadachhetri15/2244_ica2:latest'
                  sh "docker tag sharadachhetri15/2244_ica2:latest sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
             }
@@ -38,10 +44,10 @@ pipeline {
             steps {
                 echo 'Building..'
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh ''
+                        sh '''
                              docker login -u ${USERNAME} -p ${PASSWORD}
                              docker push sharadachhetri15/2244_ica2:latest
-                        ''
+                        '''
                         sh " docker push sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
                     }
             }
