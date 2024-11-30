@@ -18,9 +18,9 @@ pipeline {
         stage('Build and Run Docker Image') {
             steps {
                 sh 'docker stop dev-container || true && docker rm dev-container || true'
-                sh 'docker build -t SharadaChhetri/2244_ica2 .'
-                sh "docker tag SharadaChhetri/2244_ica2 SharadaChhetri/2244_ica2:develop-${env.BUILD_ID}"
-                sh 'docker run -d --name dev-container -p 8081:80 SharadaChhetri/2244_ica2'
+                sh 'docker build -t sharadachhetri15/2244_ica2 .'
+                sh "docker tag sharadachhetri15/2244_ica2 sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
+                sh 'docker run -d --name dev-container -p 8081:80 sharadachhetri15/2244_ica2'
             }
         }
 
@@ -34,8 +34,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-auth', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh 'docker login -u ${USERNAME} -p ${PASSWORD}'
-                    sh 'docker push SharadaChhetri/2244_ica2'
-                    sh "docker push SharadaChhetri/2244_ica2:develop-${env.BUILD_ID}"                    
+                    sh 'docker push sharadachhetri15/2244_ica2'
+                    sh "docker push sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"                    
                 }
             }
         }
