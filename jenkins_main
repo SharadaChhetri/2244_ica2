@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build and run docker image') {
+            steps {
+                sh '''
+                    docker stop sharada || true
+                    docker rm sharada || true
+
+                    docker pull sharadachhetri15/2244_ica2:latest
+
+                    docker run --name sharada -d -p 8082:80 sharadachhetri15/2244_ica2:latest
+                '''
+            }
+        }
+        stage('Testing') {
+            steps {
+                sh '''
+                    # Test the running container
+                    curl -I http://192.168.80.130:8082
+                '''
+            }
+        }
+    }
+}
