@@ -24,9 +24,18 @@ pipeline {
             }
         }
 
+ stage('Build and Run Docker Image') {
+            steps {
+                sh 'docker stop dev-container || true && docker rm dev-container || true'
+                sh 'docker build -t sharadachhetri15/2244_ica2 .'
+                sh "docker tag sharadachhetri15/2244_ica2 sharadachhetri15/2244_ica2:develop-${env.BUILD_ID}"
+                sh 'docker run -d --name dev-container -p 8081:80 rsharadachhetri15/2244_ica2'
+            }
+        }
+
         stage('Test Container') {
             steps {
-                sh 'curl -I 192.168.80.130:8081'
+                sh 'curl -I 192.168.80.130:8080'
             }
         }
 
